@@ -35,6 +35,7 @@ An AI-powered voice assistant for your desktop — built with Electron, Express,
 - A [Groq API key](https://console.groq.com) (free tier available)
 
 ---
+<img width="1127" height="812" alt="image" src="https://github.com/user-attachments/assets/b35a2748-c599-40c9-bccc-c699db23fe63" />
 
 ## Installation
 
