@@ -14,6 +14,9 @@ An AI-powered voice assistant for your desktop — built with Electron, Express,
 
 ---
 
+<img width="1128" height="810" alt="image" src="https://github.com/user-attachments/assets/7c72e670-2893-423b-a935-09e2d44666fe" />
+
+
 ## Features
 
 - **Voice input** — speak a command, get a spoken answer
