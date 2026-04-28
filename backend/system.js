@@ -4,7 +4,7 @@
 //  Archivo: jarvis-app/backend/system.js
 // ============================================================
 
-const { exec, execSync } = require('child_process')
+const { exec } = require('child_process')
 
 const isWin  = process.platform === 'win32'
 const isMac  = process.platform === 'darwin'
@@ -13,14 +13,14 @@ function systemCmd(action) {
   switch (action) {
     case 'time': {
       const now = new Date()
-      const time = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-      return { success: true, response: `Son las ${time}, señor.` }
+      const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      return { success: true, response: `It's ${time}, sir.` }
     }
 
     case 'date': {
       const now = new Date()
-      const date = now.toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
-      return { success: true, response: `Hoy es ${date}.` }
+      const date = now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      return { success: true, response: `Today is ${date}.` }
     }
 
     case 'volume_up': {
@@ -29,7 +29,7 @@ function systemCmd(action) {
       } else if (isMac) {
         exec(`osascript -e 'set volume output volume (output volume of (get volume settings) + 10)'`)
       }
-      return { success: true, response: 'Subiendo el volumen.' }
+      return { success: true, response: 'Increasing volume.' }
     }
 
     case 'volume_down': {
@@ -38,7 +38,7 @@ function systemCmd(action) {
       } else if (isMac) {
         exec(`osascript -e 'set volume output volume (output volume of (get volume settings) - 10)'`)
       }
-      return { success: true, response: 'Bajando el volumen.' }
+      return { success: true, response: 'Decreasing volume.' }
     }
 
     case 'mute': {
@@ -47,29 +47,29 @@ function systemCmd(action) {
       } else if (isMac) {
         exec(`osascript -e 'set volume output muted true'`)
       }
-      return { success: true, response: 'Audio silenciado.' }
+      return { success: true, response: 'Audio muted.' }
     }
 
     case 'shutdown': {
       const cmd = isWin ? 'shutdown /s /t 30' : 'shutdown -h +1'
       exec(cmd)
-      return { success: true, response: 'Iniciando apagado en 30 segundos. Puede cancelar con "Jarvis, cancelar apagado".' }
+      return { success: true, response: 'Initiating shutdown in 30 seconds. You can cancel with "Jarvis, cancel shutdown".' }
     }
 
     case 'restart': {
       const cmd = isWin ? 'shutdown /r /t 30' : 'shutdown -r +1'
       exec(cmd)
-      return { success: true, response: 'Reiniciando el sistema en 30 segundos.' }
+      return { success: true, response: 'Restarting the system in 30 seconds.' }
     }
 
     case 'cancel_shutdown': {
       const cmd = isWin ? 'shutdown /a' : 'shutdown -c'
       exec(cmd)
-      return { success: true, response: 'Apagado cancelado, señor.' }
+      return { success: true, response: 'Shutdown cancelled, sir.' }
     }
 
     default:
-      return { success: false, response: `Acción de sistema desconocida: ${action}` }
+      return { success: false, response: `Unknown system action: ${action}` }
   }
 }
 

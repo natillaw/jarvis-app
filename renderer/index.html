@@ -9,12 +9,12 @@
   :root {
     --arc: #00c8ff;
     --arc2: #0af;
-    --glow: rgba(0,200,255,0.4);
+    --glow: rgb(0, 200, 255);
     --ok: #39ff14;
     --warn: #ff6b35;
     --bg: #020d12;
-    --panel: rgba(0,200,255,0.05);
-    --border: rgba(0,200,255,0.2);
+    --panel: rgb(0, 200, 255);
+    --border: rgba(0, 200, 255, 0.649);
   }
   * { box-sizing:border-box; margin:0; padding:0; user-select:none; }
 
@@ -24,7 +24,7 @@
     font-family: 'Share Tech Mono', monospace;
     height: 100vh;
     overflow: hidden;
-    -webkit-app-region: drag;  /* Drag para mover la ventana */
+    -webkit-app-region: drag;
   }
 
   .bg {
@@ -38,7 +38,6 @@
     pointer-events:none; z-index:1;
   }
 
-  /* ── WINDOW CONTROLS ──────────────────────── */
   .win-controls {
     position:fixed; top:12px; right:16px;
     display:flex; gap:8px; z-index:100;
@@ -54,7 +53,6 @@
   .btn-minimize { background:#ffbd2e; }
   .btn-maximize { background:#28c840; }
 
-  /* ── MAIN LAYOUT ──────────────────────────── */
   .hud {
     position:relative; z-index:2;
     height: 100vh;
@@ -64,7 +62,6 @@
     gap: 1rem;
   }
 
-  /* ── HEADER ───────────────────────────────── */
   .header {
     display:flex; align-items:center; justify-content:space-between;
   }
@@ -87,7 +84,6 @@
   }
   @keyframes blink { 0%,100%{ opacity:1 } 50%{ opacity:.3 } }
 
-  /* ── CENTER — Arc reactor + visualizer ────── */
   .center {
     display:flex;
     flex-direction:column;
@@ -96,7 +92,6 @@
     gap:1.5rem;
   }
 
-  /* Arc reactor SVG ring */
   .arc-ring {
     position:relative;
     width:160px; height:160px;
@@ -112,7 +107,6 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Mic button in center */
   #mic-btn {
     position:absolute;
     top:50%; left:50%;
@@ -143,7 +137,6 @@
     50%    { box-shadow: 0 0 50px rgba(57,255,20,0.9); }
   }
 
-  /* ── AUDIO VISUALIZER BARS ────────────────── */
   .visualizer {
     display:flex; gap:3px; align-items:flex-end;
     height:40px; width:200px;
@@ -164,7 +157,6 @@
     to   { height: var(--h, 20px); }
   }
 
-  /* ── STATUS TEXT ──────────────────────────── */
   #status-text {
     font-size:.7rem;
     letter-spacing:.2em;
@@ -173,7 +165,6 @@
     min-height:1.2em;
   }
 
-  /* ── TRANSCRIPT PANEL ─────────────────────── */
   .transcript-panel {
     border: 1px solid var(--border);
     background: var(--panel);
@@ -194,7 +185,6 @@
     transition: opacity .3s;
   }
 
-  /* ── RESPONSE PANEL ───────────────────────── */
   .response-panel {
     border: 1px solid var(--border);
     background: var(--panel);
@@ -212,17 +202,12 @@
     color: var(--arc);
     line-height:1.6;
   }
-  #response.typing::after {
-    content:'▋'; animation: blink 0.8s step-end infinite;
-  }
 
-  /* ── FOOTER ───────────────────────────────── */
   .footer {
     display:flex; align-items:center; justify-content:space-between;
     font-size:.58rem; letter-spacing:.15em; opacity:.4;
   }
 
-  /* ── HOTKEY HINT ──────────────────────────── */
   .hotkey-hint {
     text-align:center;
     font-size:.6rem;
@@ -237,6 +222,18 @@
     font-family:inherit;
     opacity:.7;
   }
+
+  /* Contador de grabación */
+  #record-timer {
+    font-size:.65rem;
+    letter-spacing:.2em;
+    color: var(--ok);
+    min-height:1em;
+    text-align:center;
+    opacity:0;
+    transition: opacity .3s;
+  }
+  #record-timer.visible { opacity:1; }
 </style>
 </head>
 <body>
@@ -244,7 +241,6 @@
 <div class="bg"></div>
 <div class="scanlines"></div>
 
-<!-- Window controls -->
 <div class="win-controls">
   <button class="win-btn btn-close"    onclick="window.jarvis?.close()"></button>
   <button class="win-btn btn-minimize" onclick="window.jarvis?.minimize()"></button>
@@ -252,7 +248,6 @@
 </div>
 
 <div class="hud">
-  <!-- Header -->
   <div class="header">
     <div class="logo">JARVIS</div>
     <div class="status-bar">
@@ -262,26 +257,19 @@
     </div>
   </div>
 
-  <!-- Center -->
   <div class="center">
-    <!-- Arc reactor ring -->
     <div class="arc-ring">
       <svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
-        <!-- Outer static ring -->
         <circle cx="80" cy="80" r="75" fill="none" stroke="rgba(0,200,255,0.15)" stroke-width="1"/>
-        <!-- Rotating dashed ring 1 -->
         <g class="pulse-ring">
           <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(0,200,255,0.5)"
             stroke-width="1.5" stroke-dasharray="8 6"/>
         </g>
-        <!-- Rotating dashed ring 2 (reverse) -->
         <g class="pulse-ring2">
           <circle cx="80" cy="80" r="60" fill="none" stroke="rgba(0,200,255,0.3)"
             stroke-width="1" stroke-dasharray="4 10"/>
         </g>
-        <!-- Inner static glow ring -->
         <circle cx="80" cy="80" r="50" fill="none" stroke="rgba(0,200,255,0.25)" stroke-width="1"/>
-        <!-- Tick marks -->
         <g stroke="rgba(0,200,255,0.4)" stroke-width="1">
           <line x1="80" y1="5"  x2="80" y2="15" transform="rotate(0 80 80)"/>
           <line x1="80" y1="5"  x2="80" y2="12" transform="rotate(30 80 80)"/>
@@ -297,11 +285,9 @@
           <line x1="80" y1="5"  x2="80" y2="12" transform="rotate(330 80 80)"/>
         </g>
       </svg>
-      <!-- Mic button inside the ring -->
       <button id="mic-btn" title="Click para hablar (o presiona Espacio)">🎙️</button>
     </div>
 
-    <!-- Audio visualizer -->
     <div class="visualizer" id="visualizer">
       <div class="bar" style="--h:8px;  --speed:.5s"></div>
       <div class="bar" style="--h:20px; --speed:.7s"></div>
@@ -318,9 +304,9 @@
     </div>
 
     <div id="status-text">PRESIONA EL MICRÓFONO PARA HABLAR</div>
+    <div id="record-timer"></div>
   </div>
 
-  <!-- Bottom panels -->
   <div style="display:flex; flex-direction:column; gap:.75rem;">
     <div class="transcript-panel">
       <div class="transcript-label">ENTRADA DE VOZ</div>
@@ -344,21 +330,18 @@
 </div>
 
 <script>
-// ════════════════════════════════════════════════════════════
-//  JARVIS UI — Voice Recognition & API Communication
-// ════════════════════════════════════════════════════════════
-
 const API_URL = 'http://127.0.0.1:3847'
 
-const micBtn      = document.getElementById('mic-btn')
-const statusText  = document.getElementById('status-text')
-const transcript  = document.getElementById('transcript')
-const responseEl  = document.getElementById('response')
-const visualizer  = document.getElementById('visualizer')
-const clock       = document.getElementById('clock')
-const dateDis     = document.getElementById('date-display')
+const micBtn     = document.getElementById('mic-btn')
+const statusText = document.getElementById('status-text')
+const transcript = document.getElementById('transcript')
+const responseEl = document.getElementById('response')
+const visualizer = document.getElementById('visualizer')
+const clock      = document.getElementById('clock')
+const dateDis    = document.getElementById('date-display')
+const recTimer   = document.getElementById('record-timer')
 
-// ── Reloj en tiempo real ─────────────────────────────────
+// ── Reloj ─────────────────────────────────────────────────
 function updateClock() {
   const now = new Date()
   clock.textContent = now.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit', second:'2-digit' })
@@ -367,157 +350,106 @@ function updateClock() {
 setInterval(updateClock, 1000)
 updateClock()
 
-// ── Text-to-Speech ───────────────────────────────────────
-function speak(text) {
-  if (!window.speechSynthesis) return
-  window.speechSynthesis.cancel()
-  const utt = new SpeechSynthesisUtterance(text)
-  utt.lang = 'es-ES'
-  utt.rate = 0.95
-  utt.pitch = 0.85  // Voz levemente más grave, más "Jarvis"
-  // Busca voz en español si está disponible
-  const voices = speechSynthesis.getVoices()
-  const esVoice = voices.find(v => v.lang.startsWith('es'))
-  if (esVoice) utt.voice = esVoice
-  speechSynthesis.speak(utt)
-}
-
-// ── Enviar texto al backend de JARVIS ────────────────────
-async function sendCommand(text) {
-  try {
-    const res = await fetch(`${API_URL}/command`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
-    })
-    const data = await res.json()
-    return data.response || 'Acción ejecutada.'
-  } catch (err) {
-    return 'Error de conexión con el backend de JARVIS. ¿Está corriendo el servidor?'
+// ── Text-to-Speech ────────────────────────────────────────
+function speak(base64Audio) {
+  if (!base64Audio) {
+    console.log('[TTS] No hay audio')
+    return
   }
+  console.log('[TTS] Reproduciendo audio, tamaño base64:', base64Audio.length)
+  const audio = new Audio('data:audio/mp3;base64,' + base64Audio)
+  audio.oncanplaythrough = () => console.log('[TTS] Audio listo para reproducir')
+  audio.onerror = (e) => console.error('[TTS] Error reproduciendo:', e)
+  audio.play().then(() => console.log('[TTS] Reproduciendo...')).catch(e => console.error('[TTS] Play error:', e))
 }
 
-// ── Estados de la UI ─────────────────────────────────────
+// ── Estados de la UI ──────────────────────────────────────
 function setState(state) {
-  micBtn.className = state === 'listening' ? 'listening'
+  micBtn.className = state === 'listening'  ? 'listening'
                    : state === 'processing' ? 'processing' : ''
   visualizer.className = state === 'listening' ? 'visualizer active' : 'visualizer'
 
-  const icons = { idle:'🎙️', listening:'🔴', processing:'⚙️' }
+  const icons  = { idle:'🎙️', listening:'🔴', processing:'⚙️' }
   micBtn.textContent = icons[state] || '🎙️'
 
   const labels = {
     idle:       'PRESIONA EL MICRÓFONO PARA HABLAR',
-    listening:  'ESCUCHANDO... HABLA AHORA',
+    listening:  'GRABANDO... HABLA AHORA',
     processing: 'PROCESANDO COMANDO...'
   }
   statusText.textContent = labels[state] || ''
+
+  if (state !== 'listening') {
+    recTimer.classList.remove('visible')
+    recTimer.textContent = ''
+  }
 }
 
-// ── Web Speech API — Reconocimiento de voz ───────────────
-let recognition = null
+// ── Contador regresivo durante grabación ──────────────────
+let timerInterval = null
+function startRecordTimer(seconds) {
+  let remaining = seconds
+  recTimer.textContent = `GRABANDO ${remaining}s...`
+  recTimer.classList.add('visible')
+  timerInterval = setInterval(() => {
+    remaining--
+    if (remaining <= 0) {
+      clearInterval(timerInterval)
+      recTimer.textContent = 'PROCESANDO...'
+    } else {
+      recTimer.textContent = `GRABANDO ${remaining}s...`
+    }
+  }, 1000)
+}
+
+// ── Grabación y transcripción via backend ─────────────────
 let isListening = false
+const RECORD_SECONDS = 5
 
-function initRecognition() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-  if (!SpeechRecognition) {
-    statusText.textContent = '⚠ Navegador no compatible. Usa Chrome.'
-    return null
-  }
+async function toggleListening() {
+  if (isListening) return  // Espera a que termine
 
-  const r = new SpeechRecognition()
-  r.lang = 'es-ES'          // Reconocimiento en español
-  r.continuous = false      // Para cuando detecta silencio
-  r.interimResults = true   // Muestra texto mientras habla
-  r.maxAlternatives = 1
-
-  r.onstart = () => {
-    isListening = true
-    setState('listening')
-    transcript.textContent = '...'
-  }
-
-  // Resultado parcial en tiempo real
-  r.onresult = (event) => {
-    let interim = ''
-    let final = ''
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const t = event.results[i][0].transcript
-      if (event.results[i].isFinal) final += t
-      else interim += t
-    }
-    transcript.textContent = final || interim || '...'
-
-    // Si hay resultado final, procesa
-    if (final.trim()) {
-      r.stop()
-      processTranscript(final.trim())
-    }
-  }
-
-  r.onerror = (e) => {
-    console.error('Speech error:', e.error)
-    const msgs = {
-      'no-speech':        'No escuché nada. Intenta de nuevo.',
-      'not-allowed':      '⚠ Permiso de micrófono denegado. Actívalo en el navegador.',
-      'network':          '⚠ Error de red en reconocimiento de voz.',
-      'audio-capture':    '⚠ No se detectó micrófono.'
-    }
-    statusText.textContent = msgs[e.error] || `Error: ${e.error}`
-    setState('idle')
-    isListening = false
-  }
-
-  r.onend = () => {
-    if (isListening) {
-      // Si terminó sin resultado final, regresa a idle
-      isListening = false
-      if (statusText.textContent === 'ESCUCHANDO... HABLA AHORA') {
-        setState('idle')
-      }
-    }
-  }
-
-  return r
-}
-
-// ── Procesa el texto y obtiene respuesta ─────────────────
-async function processTranscript(text) {
-  isListening = false
-  setState('processing')
-  transcript.textContent = text
-
-  const reply = await sendCommand(text)
-
-  responseEl.textContent = reply
-  setState('idle')
-  speak(reply)
-}
-
-// ── Toggle de escucha ────────────────────────────────────
-function toggleListening() {
-  if (isListening) {
-    recognition?.stop()
-    isListening = false
-    setState('idle')
-    return
-  }
-
-  if (!recognition) {
-    recognition = initRecognition()
-  }
-  if (!recognition) return
+  isListening = true
+  setState('listening')
+  transcript.textContent = '...'
+  responseEl.textContent = ''
+  startRecordTimer(RECORD_SECONDS)
 
   try {
-    recognition.start()
-  } catch (e) {
-    // Si ya está corriendo, para y reinicia
-    recognition.stop()
-    setTimeout(() => recognition.start(), 200)
+    const res = await fetch(`${API_URL}/listen`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ seconds: RECORD_SECONDS })
+    })
+
+    clearInterval(timerInterval)
+    setState('processing')
+
+    const data = await res.json()
+
+    if (data.error) {
+      transcript.textContent = '—'
+      responseEl.textContent = `Error: ${data.error}`
+      setState('idle')
+      isListening = false
+      return
+    }
+
+    transcript.textContent = data.text || '(sin audio)'
+    responseEl.textContent = data.response || 'Acción ejecutada.'
+    setState('idle')
+    speak(data.audio)
+
+  } catch (err) {
+    clearInterval(timerInterval)
+    responseEl.textContent = 'Error de conexión con el backend.'
+    setState('idle')
   }
+
+  isListening = false
 }
 
-// ── Event listeners ──────────────────────────────────────
+// ── Event listeners ───────────────────────────────────────
 micBtn.addEventListener('click', toggleListening)
 
 document.addEventListener('keydown', (e) => {
@@ -525,18 +457,15 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault()
     toggleListening()
   }
-  if (e.code === 'Escape' && isListening) {
-    recognition?.stop()
+  if (e.code === 'Escape') {
     isListening = false
+    clearInterval(timerInterval)
     setState('idle')
   }
 })
 
-// ── Inicialización ───────────────────────────────────────
+// ── Inicialización ────────────────────────────────────────
 window.addEventListener('load', () => {
-  recognition = initRecognition()
-
-  // Verifica conexión con backend
   fetch(`${API_URL}/ping`)
     .then(r => r.json())
     .then(() => {
@@ -547,10 +476,11 @@ window.addEventListener('load', () => {
       document.getElementById('sys-status').style.color = 'var(--warn)'
     })
 
-  // Precarga voces TTS
-  speechSynthesis.getVoices()
-  speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices()
-})
-</script>
+  if (window.jarvis?.onActivateMic) {
+    window.jarvis.onActivateMic(() => {
+      toggleListening()
+    })
+  }
+})</script>
 </body>
 </html>

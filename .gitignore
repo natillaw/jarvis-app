@@ -1,1 +1,36 @@
+# ── Dependencias ─────────────────────────────────────────────
 node_modules/
+.npm/
+
+# ── Variables de entorno (NUNCA subir) ────────────────────────
+.env
+*.env
+!.env.example
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+jarvis-log.txt
+logs/
+
+# ── Build / distribución ─────────────────────────────────────
+dist/
+out/
+build/
+release/
+
+# ── Electron / OS ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editor ────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.user
+
+# ── Temporales ────────────────────────────────────────────────
+tmp/
+temp/
+*.tmp
+package-lock.json

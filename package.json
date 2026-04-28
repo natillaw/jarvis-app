@@ -1,24 +1,53 @@
 {
   "name": "jarvis-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "JARVIS - Just A Rather Very Intelligent System",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.natha.jarvis",
+    "productName": "JARVIS",
+    "win": {
+      "target": "nsis",
+      "icon": "assets/jarvis-icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "files": [
+      "**/*",
+      "!node_modules/.cache",
+      "!**/*.map"
+    ]
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "devDependencies": {
+    "electron": "^41.2.1",
+    "electron-builder": "^26.8.1"
+  },
   "dependencies": {
+    "@google/genai": "^1.50.1",
     "@google/generative-ai": "^0.24.1",
+    "@picovoice/porcupine-node": "^4.0.2",
     "auto-launch": "^5.0.6",
     "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "electron": "^41.2.1",
-    "electron-builder": "^26.8.1",
+    "dotenv": "^16.6.1",
     "electron-store": "^11.0.2",
     "express": "^5.2.1",
+    "groq-sdk": "^1.1.2",
+    "msedge-tts": "^2.0.5",
+    "node-microphone": "^0.2.0",
+    "spotify-web-api-node": "^5.0.2",
+    "uiohook-napi": "^1.5.5",
     "ws": "^8.20.0"
   }
 }
