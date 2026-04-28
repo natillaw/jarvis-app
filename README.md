@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ JARVIS
+# JARVIS
 
 **Just A Rather Very Intelligent System**
 
@@ -16,15 +16,15 @@ An AI-powered voice assistant for your desktop — built with Electron, Express,
 
 ## Features
 
-- 🎤 **Voice input** — speak a command, get a spoken answer
-- 🤖 **AI chat** — powered by Groq (Llama 3.3 70B)
-- 🔊 **Text-to-speech** — natural voice via Microsoft Edge TTS
-- 🎵 **Spotify control** — play, pause, skip, search
-- 🖥️ **System commands** — volume, time/date, shutdown, restart
-- 🚀 **App launcher** — open any app by voice
-- 🌐 **Web search** — hands-free Google search
-- ⌨️ **Wake hotkey** — Ctrl+Shift+J to activate anywhere
-- 🔄 **Auto-launch** — starts with Windows
+- **Voice input** — speak a command, get a spoken answer
+-  **AI chat** — powered by Groq (Llama 3.3 70B)
+-  **Text-to-speech** — natural voice via Microsoft Edge TTS
+-  **Spotify control** — play, pause, skip, search
+-  **System commands** — volume, time/date, shutdown, restart
+-  **App launcher** — open any app by voice
+-  **Web search** — hands-free Google search
+-  **Wake hotkey** — Ctrl+Shift+J to activate anywhere
+-  **Auto-launch** — starts with Windows
 
 ---
 
@@ -62,13 +62,13 @@ Copy `.env.example` to `.env` and fill in your credentials:
 
 | Variable | Required | Description |
 |---|---|---|
-| `GROQ_API_KEY` | ✅ Yes | Get free at [console.groq.com](https://console.groq.com) |
-| `SPOTIFY_CLIENT_ID` | ⚪ Optional | Spotify Developer Dashboard |
-| `SPOTIFY_CLIENT_SECRET` | ⚪ Optional | Spotify Developer Dashboard |
-| `SPOTIFY_REDIRECT_URI` | ⚪ Optional | Default: `http://127.0.0.1:8888/callback` |
-| `PICOVOICE_ACCESS_KEY` | ⚪ Optional | For offline wake word detection |
+| `GROQ_API_KEY` |  Yes | Get free at [console.groq.com](https://console.groq.com) |
+| `SPOTIFY_CLIENT_ID` |  Optional | Spotify Developer Dashboard |
+| `SPOTIFY_CLIENT_SECRET` |  Optional | Spotify Developer Dashboard |
+| `SPOTIFY_REDIRECT_URI` |  Optional | Default: `http://127.0.0.1:8888/callback` |
+| `PICOVOICE_ACCESS_KEY` |  Optional | For offline wake word detection |
 
-> ⚠️ **Never commit your `.env` file.** It is already in `.gitignore`.
+>  **Never commit your `.env` file.** It is already in `.gitignore`.
 
 ---
 
