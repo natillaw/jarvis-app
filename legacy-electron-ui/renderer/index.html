@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JARVIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --arc: #00c8ff;
+    --arc2: #0af;
+    --glow: rgb(0, 200, 255);
+    --ok: #39ff14;
+    --warn: #ff6b35;
+    --bg: #020d12;
+    --panel: rgb(0, 200, 255);
+    --border: rgba(0, 200, 255, 0.649);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; user-select:none; }
+
+  body {
+    background: transparent;
+    color: var(--arc);
+    font-family: 'Share Tech Mono', monospace;
+    height: 100vh;
+    overflow: hidden;
+    -webkit-app-region: drag;
+  }
+
+  .bg {
+    position:fixed; inset:0;
+    background: radial-gradient(ellipse at 50% 40%, rgba(0,100,140,0.18) 0%, #020d12 70%);
+    z-index:0;
+  }
+  .scanlines {
+    position:fixed; inset:0;
+    background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,200,255,0.02) 3px,rgba(0,200,255,0.02) 4px);
+    pointer-events:none; z-index:1;
+  }
+
+  .win-controls {
+    position:fixed; top:12px; right:16px;
+    display:flex; gap:8px; z-index:100;
+    -webkit-app-region: no-drag;
+  }
+  .win-btn {
+    width:13px; height:13px; border-radius:50%;
+    border:none; cursor:pointer; opacity:.7;
+    transition: opacity .2s, transform .2s;
+  }
+  .win-btn:hover { opacity:1; transform:scale(1.2); }
+  .btn-close    { background:#ff5f57; }
+  .btn-minimize { background:#ffbd2e; }
+  .btn-maximize { background:#28c840; }
+
+  .hud {
+    position:relative; z-index:2;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .header {
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .logo {
+    font-family:'Orbitron',sans-serif;
+    font-size:1.6rem;
+    font-weight:900;
+    letter-spacing:.3em;
+    text-shadow: 0 0 20px var(--arc);
+  }
+  .status-bar {
+    display:flex; gap:1.5rem; align-items:center;
+    font-size:.6rem; letter-spacing:.15em; opacity:.6;
+  }
+  .status-dot {
+    width:6px; height:6px; border-radius:50%;
+    background: var(--ok);
+    box-shadow: 0 0 6px var(--ok);
+    animation: blink 2s infinite;
+  }
+  @keyframes blink { 0%,100%{ opacity:1 } 50%{ opacity:.3 } }
+
+  .center {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:1.5rem;
+  }
+
+  .arc-ring {
+    position:relative;
+    width:160px; height:160px;
+  }
+  .arc-ring svg { width:100%; height:100%; }
+  .arc-ring .pulse-ring {
+    animation: spin 8s linear infinite;
+    transform-origin: center;
+  }
+  .arc-ring .pulse-ring2 {
+    animation: spin 5s linear infinite reverse;
+    transform-origin: center;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #mic-btn {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:64px; height:64px; border-radius:50%;
+    border: 2px solid var(--arc);
+    background: rgba(0,200,255,0.1);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.6rem;
+    transition: background .2s, box-shadow .2s;
+    -webkit-app-region: no-drag;
+  }
+  #mic-btn:hover { background: rgba(0,200,255,0.2); box-shadow: 0 0 20px var(--glow); }
+  #mic-btn.listening {
+    background: rgba(57,255,20,0.15);
+    border-color: var(--ok);
+    box-shadow: 0 0 30px rgba(57,255,20,0.5);
+    animation: mic-pulse 1s ease-in-out infinite;
+  }
+  #mic-btn.processing {
+    background: rgba(255,107,53,0.15);
+    border-color: var(--warn);
+    box-shadow: 0 0 20px rgba(255,107,53,0.4);
+  }
+  @keyframes mic-pulse {
+    0%,100%{ box-shadow: 0 0 20px rgba(57,255,20,0.5); }
+    50%    { box-shadow: 0 0 50px rgba(57,255,20,0.9); }
+  }
+
+  .visualizer {
+    display:flex; gap:3px; align-items:flex-end;
+    height:40px; width:200px;
+  }
+  .bar {
+    flex:1; background: var(--arc);
+    border-radius:2px 2px 0 0;
+    opacity:.4;
+    transition: height .1s ease;
+    height: 4px;
+  }
+  .visualizer.active .bar {
+    opacity:.8;
+    animation: bar-dance var(--speed, .6s) ease-in-out infinite alternate;
+  }
+  @keyframes bar-dance {
+    from { height: 4px; }
+    to   { height: var(--h, 20px); }
+  }
+
+  #status-text {
+    font-size:.7rem;
+    letter-spacing:.2em;
+    opacity:.7;
+    text-align:center;
+    min-height:1.2em;
+  }
+
+  .transcript-panel {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius:6px;
+    padding:.75rem 1rem;
+    min-height:4rem;
+    max-height:4rem;
+    overflow:hidden;
+  }
+  .transcript-label {
+    font-size:.55rem; letter-spacing:.2em; opacity:.4; margin-bottom:.3rem;
+  }
+  #transcript {
+    font-size:.8rem;
+    color:#fff;
+    opacity:.9;
+    min-height:1.2em;
+    transition: opacity .3s;
+  }
+
+  .response-panel {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius:6px;
+    padding:.75rem 1rem;
+    min-height:4rem;
+    max-height:6rem;
+    overflow-y:auto;
+  }
+  .response-label {
+    font-size:.55rem; letter-spacing:.2em; opacity:.4; margin-bottom:.3rem;
+  }
+  #response {
+    font-size:.78rem;
+    color: var(--arc);
+    line-height:1.6;
+  }
+
+  .footer {
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:.58rem; letter-spacing:.15em; opacity:.4;
+  }
+
+  .hotkey-hint {
+    text-align:center;
+    font-size:.6rem;
+    letter-spacing:.15em;
+    opacity:.3;
+    -webkit-app-region: no-drag;
+  }
+  kbd {
+    border: 1px solid var(--border);
+    padding:.1em .35em;
+    border-radius:3px;
+    font-family:inherit;
+    opacity:.7;
+  }
+
+  /* Contador de grabación */
+  #record-timer {
+    font-size:.65rem;
+    letter-spacing:.2em;
+    color: var(--ok);
+    min-height:1em;
+    text-align:center;
+    opacity:0;
+    transition: opacity .3s;
+  }
+  #record-timer.visible { opacity:1; }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="scanlines"></div>
+
+<div class="win-controls">
+  <button class="win-btn btn-close"    onclick="window.jarvis?.close()"></button>
+  <button class="win-btn btn-minimize" onclick="window.jarvis?.minimize()"></button>
+  <button class="win-btn btn-maximize" onclick="window.jarvis?.maximize()"></button>
+</div>
+
+<div class="hud">
+  <div class="header">
+    <div class="logo">JARVIS</div>
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span id="sys-status">SISTEMA ONLINE</span>
+      <span id="clock">--:--</span>
+    </div>
+  </div>
+
+  <div class="center">
+    <div class="arc-ring">
+      <svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="80" cy="80" r="75" fill="none" stroke="rgba(0,200,255,0.15)" stroke-width="1"/>
+        <g class="pulse-ring">
+          <circle cx="80" cy="80" r="68" fill="none" stroke="rgba(0,200,255,0.5)"
+            stroke-width="1.5" stroke-dasharray="8 6"/>
+        </g>
+        <g class="pulse-ring2">
+          <circle cx="80" cy="80" r="60" fill="none" stroke="rgba(0,200,255,0.3)"
+            stroke-width="1" stroke-dasharray="4 10"/>
+        </g>
+        <circle cx="80" cy="80" r="50" fill="none" stroke="rgba(0,200,255,0.25)" stroke-width="1"/>
+        <g stroke="rgba(0,200,255,0.4)" stroke-width="1">
+          <line x1="80" y1="5"  x2="80" y2="15" transform="rotate(0 80 80)"/>
+          <line x1="80" y1="5"  x2="80" y2="12" transform="rotate(30 80 80)"/>
+          <line x1="80" y1="5"  x2="80" y2="12" transform="rotate(60 80 80)"/>
+          <line x1="80" y1="5"  x2="80" y2="15" transform="rotate(90 80 80)"/>
+          <line x1="80" y1="5"  x2="80" y2="12" transform="rotate(120 80 80)"/>
+          <line x1="80" y1="5"  x2="80" y2="12" transform="rotate(150 80 80)"/>
+          <line x1="80" y1="5"  x2="80" y2="15" transform="rotate(180 80 80)"/>
+          <line x1="80" y1="5"  x2="80" y2="12" transform="rotate(210 80 80)"/>
+          <line x1="80" y1="5"  x2="80" y2="12" transform="rotate(240 80 80)"/>
+          <line x1="80" y1="5"  x2="80" y2="15" transform="rotate(270 80 80)"/>
+          <line x1="80" y1="5"  x2="80" y2="12" transform="rotate(300 80 80)"/>
+          <line x1="80" y1="5"  x2="80" y2="12" transform="rotate(330 80 80)"/>
+        </g>
+      </svg>
+      <button id="mic-btn" title="Click para hablar (o presiona Espacio)">🎙️</button>
+    </div>
+
+    <div class="visualizer" id="visualizer">
+      <div class="bar" style="--h:8px;  --speed:.5s"></div>
+      <div class="bar" style="--h:20px; --speed:.7s"></div>
+      <div class="bar" style="--h:14px; --speed:.4s"></div>
+      <div class="bar" style="--h:30px; --speed:.6s"></div>
+      <div class="bar" style="--h:18px; --speed:.8s"></div>
+      <div class="bar" style="--h:25px; --speed:.5s"></div>
+      <div class="bar" style="--h:10px; --speed:.65s"></div>
+      <div class="bar" style="--h:35px; --speed:.45s"></div>
+      <div class="bar" style="--h:22px; --speed:.7s"></div>
+      <div class="bar" style="--h:16px; --speed:.55s"></div>
+      <div class="bar" style="--h:28px; --speed:.5s"></div>
+      <div class="bar" style="--h:12px; --speed:.75s"></div>
+    </div>
+
+    <div id="status-text">PRESIONA EL MICRÓFONO PARA HABLAR</div>
+    <div id="record-timer"></div>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:.75rem;">
+    <div class="transcript-panel">
+      <div class="transcript-label">ENTRADA DE VOZ</div>
+      <div id="transcript">—</div>
+    </div>
+
+    <div class="response-panel">
+      <div class="response-label">RESPUESTA JARVIS</div>
+      <div id="response">En espera de instrucciones, señor.</div>
+    </div>
+
+    <div class="hotkey-hint">
+      <kbd>ESPACIO</kbd> para activar · <kbd>ESC</kbd> para cancelar
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>JARVIS v1.0 — JUST A RATHER VERY INTELLIGENT SYSTEM</span>
+    <span id="date-display">—</span>
+  </div>
+</div>
+
+<script>
+const API_URL = 'http://127.0.0.1:3847'
+
+const micBtn     = document.getElementById('mic-btn')
+const statusText = document.getElementById('status-text')
+const transcript = document.getElementById('transcript')
+const responseEl = document.getElementById('response')
+const visualizer = document.getElementById('visualizer')
+const clock      = document.getElementById('clock')
+const dateDis    = document.getElementById('date-display')
+const recTimer   = document.getElementById('record-timer')
+
+// ── Reloj ─────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date()
+  clock.textContent = now.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit', second:'2-digit' })
+  dateDis.textContent = now.toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short', year:'numeric' }).toUpperCase()
+}
+setInterval(updateClock, 1000)
+updateClock()
+
+// ── Text-to-Speech ────────────────────────────────────────
+function speak(base64Audio) {
+  if (!base64Audio) {
+    console.log('[TTS] No hay audio')
+    return
+  }
+  console.log('[TTS] Reproduciendo audio, tamaño base64:', base64Audio.length)
+  const audio = new Audio('data:audio/mp3;base64,' + base64Audio)
+  audio.oncanplaythrough = () => console.log('[TTS] Audio listo para reproducir')
+  audio.onerror = (e) => console.error('[TTS] Error reproduciendo:', e)
+  audio.play().then(() => console.log('[TTS] Reproduciendo...')).catch(e => console.error('[TTS] Play error:', e))
+}
+
+// ── Estados de la UI ──────────────────────────────────────
+function setState(state) {
+  micBtn.className = state === 'listening'  ? 'listening'
+                   : state === 'processing' ? 'processing' : ''
+  visualizer.className = state === 'listening' ? 'visualizer active' : 'visualizer'
+
+  const icons  = { idle:'🎙️', listening:'🔴', processing:'⚙️' }
+  micBtn.textContent = icons[state] || '🎙️'
+
+  const labels = {
+    idle:       'PRESIONA EL MICRÓFONO PARA HABLAR',
+    listening:  'GRABANDO... HABLA AHORA',
+    processing: 'PROCESANDO COMANDO...'
+  }
+  statusText.textContent = labels[state] || ''
+
+  if (state !== 'listening') {
+    recTimer.classList.remove('visible')
+    recTimer.textContent = ''
+  }
+}
+
+// ── Contador regresivo durante grabación ──────────────────
+let timerInterval = null
+function startRecordTimer(seconds) {
+  let remaining = seconds
+  recTimer.textContent = `GRABANDO ${remaining}s...`
+  recTimer.classList.add('visible')
+  timerInterval = setInterval(() => {
+    remaining--
+    if (remaining <= 0) {
+      clearInterval(timerInterval)
+      recTimer.textContent = 'PROCESANDO...'
+    } else {
+      recTimer.textContent = `GRABANDO ${remaining}s...`
+    }
+  }, 1000)
+}
+
+// ── Grabación y transcripción via backend ─────────────────
+let isListening = false
+const RECORD_SECONDS = 5
+
+async function toggleListening() {
+  if (isListening) return  // Espera a que termine
+
+  isListening = true
+  setState('listening')
+  transcript.textContent = '...'
+  responseEl.textContent = ''
+  startRecordTimer(RECORD_SECONDS)
+
+  try {
+    const res = await fetch(`${API_URL}/listen`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ seconds: RECORD_SECONDS })
+    })
+
+    clearInterval(timerInterval)
+    setState('processing')
+
+    const data = await res.json()
+
+    if (data.error) {
+      transcript.textContent = '—'
+      responseEl.textContent = `Error: ${data.error}`
+      setState('idle')
+      isListening = false
+      return
+    }
+
+    transcript.textContent = data.text || '(sin audio)'
+    responseEl.textContent = data.response || 'Acción ejecutada.'
+    setState('idle')
+    speak(data.audio)
+
+  } catch (err) {
+    clearInterval(timerInterval)
+    responseEl.textContent = 'Error de conexión con el backend.'
+    setState('idle')
+  }
+
+  isListening = false
+}
+
+// ── Event listeners ───────────────────────────────────────
+micBtn.addEventListener('click', toggleListening)
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && e.target === document.body) {
+    e.preventDefault()
+    toggleListening()
+  }
+  if (e.code === 'Escape') {
+    isListening = false
+    clearInterval(timerInterval)
+    setState('idle')
+  }
+})
+
+// ── Inicialización ────────────────────────────────────────
+window.addEventListener('load', () => {
+  fetch(`${API_URL}/ping`)
+    .then(r => r.json())
+    .then(() => {
+      document.getElementById('sys-status').textContent = 'BACKEND ONLINE'
+    })
+    .catch(() => {
+      document.getElementById('sys-status').textContent = 'BACKEND OFFLINE'
+      document.getElementById('sys-status').style.color = 'var(--warn)'
+    })
+
+  if (window.jarvis?.onActivateMic) {
+    window.jarvis.onActivateMic(() => {
+      toggleListening()
+    })
+  }
+})</script>
+</body>
+</html>

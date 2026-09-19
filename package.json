@@ -1,0 +1,26 @@
+{
+  "name": "jarvis-app",
+  "version": "1.0.0",
+  "description": "JARVIS - Just A Rather Very Intelligent System",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "auto-launch": "^5.0.6",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^5.2.1",
+    "groq-sdk": "^1.1.2",
+    "msedge-tts": "^2.0.5",
+    "node-microphone": "^0.2.0",
+    "spotify-web-api-node": "^5.0.2",
+    "uiohook-napi": "^1.5.5",
+    "ws": "^8.20.0"
+  }
+}
